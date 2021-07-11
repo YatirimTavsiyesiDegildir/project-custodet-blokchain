@@ -1,11 +1,11 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./zombieattack.sol";
+import "./artifact_attack.sol";
 import "./erc721.sol";
 import "./safemath.sol";
 
 /// TODO: Replace this with natspec descriptions
-contract ZombieOwnership is ZombieAttack, ERC721 {
+contract ZombieOwnership is ZombieHelper, ERC721 {
 
   using SafeMath for uint256;
 
