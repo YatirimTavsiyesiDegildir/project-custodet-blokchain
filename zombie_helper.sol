@@ -1,13 +1,13 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./zombiefeeding.sol";
+import "./artifact_factory.sol";
 
-contract ZombieHelper is ZombieFeeding {
+contract ArtifactHelper is ArtifactFactory {
 
   uint levelUpFee = 0.001 ether;
 
-  modifier aboveLevel(uint _level, uint _zombieId) {
-    require(zombies[_zombieId].level >= _level);
+  modifier aboveLevel(uint _level, uint _artifactId) {
+    require(artifacts[_artifactId].level >= _level);
     _;
   }
 
@@ -20,24 +20,24 @@ contract ZombieHelper is ZombieFeeding {
     levelUpFee = _fee;
   }
 
-  function levelUp(uint _zombieId) external payable {
+  function levelUp(uint _artifactId) external payable {
     require(msg.value == levelUpFee);
-    zombies[_zombieId].level = zombies[_zombieId].level.add(1);
+    artifacts[_artifactId].level = artifacts[_artifactId].level.add(1);
   }
 
-  function changeName(uint _zombieId, string calldata _newName) external aboveLevel(2, _zombieId) onlyOwnerOf(_zombieId) {
-    zombies[_zombieId].name = _newName;
+  function changeName(uint _artifactId, string calldata _newName) external aboveLevel(2, _artifactId) onlyOwnerOf(_artifactId) {
+    artifacts[_artifactId].name = _newName;
   }
 
-  function changeDna(uint _zombieId, uint _newDna) external aboveLevel(20, _zombieId) onlyOwnerOf(_zombieId) {
-    zombies[_zombieId].dna = _newDna;
+  function changeDna(uint _artifactId, uint _newDna) external aboveLevel(20, _artifactId) onlyOwnerOf(_artifactId) {
+    artifacts[_artifactId].dna = _newDna;
   }
 
-  function getZombiesByOwner(address _owner) external view returns(uint[] memory) {
-    uint[] memory result = new uint[](ownerZombieCount[_owner]);
+  function getArtifactsByOwner(address _owner) external view returns(uint[] memory) {
+    uint[] memory result = new uint[](ownerArtifactCount[_owner]);
     uint counter = 0;
-    for (uint i = 0; i < zombies.length; i++) {
-      if (zombieToOwner[i] == _owner) {
+    for (uint i = 0; i < artifacts.length; i++) {
+      if (artifactToOwner[i] == _owner) {
         result[counter] = i;
         counter++;
       }
