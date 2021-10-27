@@ -26,6 +26,11 @@ contract ArtifactFactory is Ownable {
   mapping (uint => address) public artifactToOwner;
   mapping (address => uint) ownerArtifactCount;
 
+  modifier ownerOf(uint _artifactId) {
+    require(msg.sender == artifactToOwner[_artifactId]);
+    _;
+  }
+
   function _createArtifact(string memory _name, uint _dna) internal {
     uint id = artifacts.push(Artifact(_name, _dna, 1, uint32(now + cooldownTime), 0, 0)) - 1;
     artifactToOwner[id] = msg.sender;

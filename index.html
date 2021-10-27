@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>CryptoArtifacts front-end</title>
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="web3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="cryptoartifacts_abi.js"></script>
+  </head>
+  <body>
+    <div id="txStatus"></div>
+    <div id="artifacts"></div>
+
+    <script>
+      var cryptoArtifacts;
+      var userAccount;
+
+      function startApp() {
+        var cryptoArtifactsAddress = "0x56f7A7f3938c9bD35ba8BD4972c28D767bFB8Bc4";
+        cryptoArtifacts = new web3js.eth.Contract(cryptoArtifactsABI, cryptoArtifactsAddress);
+
+        var accountInterval = setInterval(function() {
+          // Check if account has changed
+          if (web3.eth.accounts[0] !== userAccount) {
+            userAccount = web3.eth.accounts[0];
+            // Call a function to update the UI with the new account
+            getArtifactsByOwner(userAccount)
+            .then(displayArtifacts);
+          }
+        }, 100);
+
+        // Start here
+      }
+
+      function displayArtifacts(ids) {
+        $("#artifacts").empty();
+        for (id of ids) {
+          // Look up artifact details from our contract. Returns a `artifact` object
+          getArtifactDetails(id)
+          .then(function(artifact) {
+            // Using ES6's "template literals" to inject variables into the HTML.
+            // Append each one to our #artifacts div
+            $("#artifacts").append(`<div class="artifact">
+              <ul>
+                <li>Name: ${artifact.name}</li>
+                <li>DNA: ${artifact.dna}</li>
+                <li>Level: ${artifact.level}</li>
+              </ul>
+            </div>`);
+          });
+        }
+      }
+
+      function createRandomArtifact(name) {
+        // This is going to take a while, so update the UI to let the user know
+        // the transaction has been sent
+        $("#txStatus").text("Creating new artifact on the blockchain. This may take a while...");
+        // Send the tx to our contract:
+        return cryptoArtifacts.methods.createRandomArtifact(name)
+        .send({ from: userAccount })
+        .on("receipt", function(receipt) {
+          $("#txStatus").text("Successfully created " + name + "!");
+          // Transaction was accepted into the blockchain, let's redraw the UI
+          getArtifactsByOwner(userAccount).then(displayArtifacts);
+        })
+        .on("error", function(error) {
+          // Do something to alert the user their transaction has failed
+          $("#txStatus").text(error);
+        });
+      }
+
+      function getArtifactDetails(id) {
+        return cryptoArtifacts.methods.artifacts(id).call()
+      }
+
+      function artifactToOwner(id) {
+        return cryptoArtifacts.methods.artifactToOwner(id).call()
+      }
+
+      function getArtifactsByOwner(owner) {
+        return cryptoArtifacts.methods.getArtifactsByOwner(owner).call()
+      }
+
+      window.addEventListener('load', function() {
+
+        // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+        if (typeof web3 !== 'undefined') {
+          // Use Mist/MetaMask's provider
+          web3js = new Web3(web3.currentProvider);
+        } else {
+          // Handle the case where the user doesn't have Metamask installed
+          // Probably show them a message prompting them to install Metamask
+        }
+
+        // Now you can start your app & access web3 freely:
+        startApp()
+
+      })
+    </script>
+  </body>
+</html>
